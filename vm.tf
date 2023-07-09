@@ -1,57 +1,37 @@
-# resource "tls_private_key" "linux_key" {
-#   algorithm = "RSA"
-#   rsa_bits  = 4096
-# }
+data "azurerm_ssh_public_key" "this" {
+  name                = "azkey"
+  resource_group_name = "NHT"
+}
 
-# # We want to save the private key to our machine
-# # We can then use this key to connect to our Linux VM
+resource "azurerm_linux_virtual_machine" "this" {
+  name                            = "vmlab1"
+  resource_group_name             = azurerm_resource_group.this.name
+  location                        = azurerm_resource_group.this.location
+  size                            = "Standard_B1s"
+  admin_username                  = "azureuser"
+  disable_password_authentication = true
+  network_interface_ids = [
+    azurerm_network_interface.this.id,
+  ]
 
-# resource "local_file" "linuxkey" {
-#   filename = "azkey.pem"
-#   content  = tls_private_key.linux_key.private_key_pem
-# }
+  admin_ssh_key {
+    username = "azureuser"
+    public_key = data.azurerm_ssh_public_key.this.public_key
+  }
 
-# resource "azurerm_network_interface" "this" {
-#   name                = "nic"
-#   location            = azurerm_resource_group.this.location
-#   resource_group_name = azurerm_resource_group.this.name
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "StandardSSD_LRS"
+  }
 
-#   ip_configuration {
-#     name                          = "internal"
-#     subnet_id                     = azurerm_subnet.internal.id
-#     private_ip_address_allocation = "Dynamic"
-#   }
-# }
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts-gen2"
+    version   = "latest"
+  }
+}
 
-# resource "azurerm_linux_virtual_machine" "this" {
-#   name                = "app1"
-#   resource_group_name = azurerm_resource_group.this.name
-#   location            = azurerm_resource_group.this.location
-#   size                = "Standard_B1s"
-#   admin_username      = "azureuser"
-#   network_interface_ids = [
-#     azurerm_network_interface.this.id,
-#   ]
-
-#   admin_ssh_key {
-#     username   = "azureuser"
-#     public_key = tls_private_key.linux_key.public_key_openssh
-#   }
-
-#   os_disk {
-#     caching              = "ReadWrite"
-#     storage_account_type = "StandardSSD_LRS"
-#   }
-
-#   source_image_reference {
-#     publisher = "Canonical"
-#     offer     = "0001-com-ubuntu-server-jammy"
-#     sku       = "22_04-lts-gen2"
-#     version   = "latest"
-#   }
-
-#   depends_on = [
-#     # azurerm_network_interface.app_interface,
-#     tls_private_key.linux_key
-#   ]
-# }
+output "public_ip_address" {
+  value = azurerm_linux_virtual_machine.this.public_ip_address
+}
