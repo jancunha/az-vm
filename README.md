@@ -7,7 +7,8 @@ Project Azure Terraform
 az login --use-device-code
 ```
 
-- Create Virtual Network;
-- Create Virtual machines;
+- Create Virtual Network with subnet plublic and private;
+- Create two Virtual machines;
 - Open ports SSH, HTTP;
-- Using an existing SSH key in the Azure cloud.
+<!-- - Using an existing SSH key in the Azure cloud. -->
+- Using an existing SSH key in the Local Computer.

@@ -1,6 +1,8 @@
-data "azurerm_ssh_public_key" "this" {
-  name                = "azkey"
-  resource_group_name = "NHT"
+resource "azurerm_ssh_public_key" "this" {
+  name                = "ufokey"
+  resource_group_name = azurerm_resource_group.this.name
+  location            = azurerm_resource_group.this.location
+  public_key          = file("~/.ssh/ufokey.pub")
 }
 
 resource "azurerm_linux_virtual_machine" "web" {
@@ -16,7 +18,7 @@ resource "azurerm_linux_virtual_machine" "web" {
 
   admin_ssh_key {
     username   = "azureuser"
-    public_key = data.azurerm_ssh_public_key.this.public_key
+    public_key = azurerm_ssh_public_key.this.public_key
   }
 
   os_disk {
@@ -45,7 +47,7 @@ resource "azurerm_linux_virtual_machine" "db" {
 
   admin_ssh_key {
     username   = "azureuser"
-    public_key = data.azurerm_ssh_public_key.this.public_key
+    public_key = azurerm_ssh_public_key.this.public_key
   }
 
   os_disk {
